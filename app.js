@@ -15,7 +15,7 @@ const adminBroMiddleware = require('./middleware/adminBro');
 const postsRouter = require('./routes/posts');
 
 // env variables
-const PORT = process.env.PORT | 5000;
+const PORT = process.env.PORT;
 const CONNECTION_URL = process.env.CONNECTION_URL;
 
 
