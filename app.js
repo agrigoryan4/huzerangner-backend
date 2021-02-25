@@ -27,6 +27,14 @@ app.use(morgan('dev'));
 const run = async () => {
   const db = await mongoose.connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", '*');
+    res.header("Access-Control-Allow-Credentials", true);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header("Access-Control-Allow-Headers", 'Origin,X-Requested-With,Content-Type,Accept,content-type,application/json');
+    next();
+  });
+
   app.use(`${adminBroInstance.options.rootPath}/api/resources/post/actions/new`, adminBroMiddleware);
   app.use(adminBroInstance.options.rootPath, router);
 
