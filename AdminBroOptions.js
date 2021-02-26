@@ -4,43 +4,52 @@ const Post = require('./models/Post');
 
 const isAdmin = ({ currentAdmin }) => currentAdmin && currentAdmin.role === 'admin';
 
+const contentNavigation = {
+  name: 'Անձնական բլոգ',
+  icon: 'Blog'
+}
+
 const AdminBroOptions = {
   rootPath: '/admin',
+  branding: {
+    companyName: 'Հուշերանգներ | ադմինիստրատորի հարթակ',
+  },
   resources: [
-    {
-      resource: User,  
-      options: {
-        properties: {
-          encryptedPassword: { isVisible: false },
-          password: {
-            type: 'string',
-            isVisible: {
-              list: false, edit: true, filter: false, show: false,
-            },
-          },
-        },
-        actions: {
-          new: {
-            before: async (request) => {
-              if(request.payload.record.password) {
-                request.payload.record = {
-                  ...request.payload.record,
-                  encryptedPassword: await bcrypt.hash(request.payload.record.password, 12),
-                  password: undefined,
-                }
-              }
-              return request
-            },
-          },
-          edit: { isAccessible: isAdmin },
-          delete: { isAccessible: isAdmin },
-          new: { isAccessible: isAdmin },
-        }
-      }
-    },
+    // {
+    //   resource: User,  
+    //   options: {
+    //     properties: {
+    //       encryptedPassword: { isVisible: false },
+    //       password: {
+    //         type: 'string',
+    //         isVisible: {
+    //           list: false, edit: true, filter: false, show: false,
+    //         },
+    //       },
+    //     },
+    //     actions: {
+    //       new: {
+    //         before: async (request) => {
+    //           if(request.payload.record.password) {
+    //             request.payload.record = {
+    //               ...request.payload.record,
+    //               encryptedPassword: await bcrypt.hash(request.payload.record.password, 12),
+    //               password: undefined,
+    //             }
+    //           }
+    //           return request
+    //         },
+    //       },
+    //       edit: { isAccessible: isAdmin },
+    //       delete: { isAccessible: isAdmin },
+    //       new: { isAccessible: isAdmin },
+    //     }
+    //   }
+    // },
     {
       resource: Post, 
       options: { 
+        navigation: contentNavigation,
         properties: { 
           body: {
             type: 'richtext'
