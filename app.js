@@ -1,12 +1,11 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
 const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const router = require('./AdminBroRouter');
+const adminBroRouter = require('./AdminBroRouter');
 const { adminBroInstance } = require('./AdminBroRouter');
 
 // custom middleware for adminBro
@@ -36,7 +35,7 @@ const run = async () => {
   });
 
   app.use(`${adminBroInstance.options.rootPath}/api/resources/post/actions/new`, adminBroMiddleware);
-  app.use(adminBroInstance.options.rootPath, router);
+  app.use(adminBroInstance.options.rootPath, adminBroRouter);
 
   app.use('/posts', postsRouter);
 
