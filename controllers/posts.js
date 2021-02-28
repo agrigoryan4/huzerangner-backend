@@ -1,12 +1,40 @@
 const Post = require('../models/Post');
 
 const getPosts = async (req, res) => {
-  const { page } = req.params;
-  const posts = await Post.find(
-    {}, 
-    { title: 1, tags: 1, createdAt: 1, lastEdited: 1 }
-  ).sort({ createdAt: -1 }).skip((page-1) * 10).limit(10);
-  const count = await Post.countDocuments({});
+  let { all, query, page, limit } = req.query;
+  if(!page) page = 1;
+  if(!limit) limit = 50;
+  let posts, count;
+  if (all) {
+    posts = await Post.find(
+      {}, 
+      { title: 1, tags: 1, createdAt: 1, lastEdited: 1 }
+    ).sort({ createdAt: -1 }).skip((page-1) * limit).limit(1 * limit);
+    count = await Post.countDocuments({});
+  }
+  else if (query) {
+    posts = await Post.find(
+      {
+        $text: {
+          // $search: `\"${query}\"`,
+          $search: query,
+          $language: 'none',
+          $caseSensitive: false
+        },
+      },
+      { title: 1, tags: 1, createdAt: 1, lastEdited: 1 }
+    ).skip((page-1) * limit).limit(1 * limit);
+    count = await Post.countDocuments(
+      {
+        $text: {
+          // $search: `\"${query}\"`,
+          $search: query,
+          $language: 'none',
+          $caseSensitive: false
+        },
+      }
+    );
+  }
   const response = {
     posts: posts,
     inTotal: count

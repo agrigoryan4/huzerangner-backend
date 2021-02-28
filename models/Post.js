@@ -3,10 +3,12 @@ const mongoose = require('mongoose');
 const Post = mongoose.model('post', {
   title: {
     type: String,
+    text: true,
     required: true,
   },
   body: {
     type: String,
+    text: true,
     required: true,
   },
   tags: [String],

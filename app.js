@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const morgan = require('morgan');
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -34,9 +35,13 @@ const run = async () => {
     next();
   });
 
+  // admin panel
   app.use(`${adminBroInstance.options.rootPath}/api/resources/post/actions/new`, adminBroMiddleware);
   app.use(adminBroInstance.options.rootPath, adminBroRouter);
-
+  
+  // posts
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.json());
   app.use('/posts', postsRouter);
 
   app.listen(PORT, () => {
