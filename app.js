@@ -9,9 +9,6 @@ dotenv.config();
 const adminBroRouter = require('./AdminBroRouter');
 const { adminBroInstance } = require('./AdminBroRouter');
 
-// custom middleware for adminBro
-const adminBroMiddleware = require('./middleware/adminBro');
-
 const postsRouter = require('./routes/posts');
 
 // env variables
@@ -36,7 +33,6 @@ const run = async () => {
   });
 
   // admin panel
-  app.use(`${adminBroInstance.options.rootPath}/api/resources/post/actions/new`, adminBroMiddleware);
   app.use(adminBroInstance.options.rootPath, adminBroRouter);
   
   // posts

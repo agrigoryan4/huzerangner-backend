@@ -1,54 +1,102 @@
 const Post = require('../../models/Post');
 const postsProjection = require('./postsProjection');
 
+/**
+ * returns the post given its id
+ * @param {string} _id 
+ */
 const getSingle = async (_id) => {
   const post = await Post.findOne({ _id });
   return post;
 };
 
+/**
+ * returns similar posts to a given post, 
+ * does "its best" to return exactly 5 results
+ * @param {string} _id 
+ */
 const getSimilar = async (_id) => {
+  // the post found with the _id
   const post = await Post.findOne({ _id });
-  let result = [];
-  const n = post.tags.length;
-  // console.log(post.tags)
-  for(let i = 0; i < n; i++) {
+
+  /* array that contains posts with matching tags, if N tags match,
+  that post will appear in the array N times
+  */
+  let results = [];
+
+  // database query for filling the array with matching tags
+  // ||| EXPERIMENTAL ||| needs improvement, connecting to the db N times is slow
+  for(let i = 0; i < post.tags.length; i++) {
     const similarPosts = await Post.find(
       {
         tags: post.tags[i]
       },
       postsProjection
     );
-    // console.log(similarPosts)
-    result = result.concat(similarPosts);
-    // console.log(result)
+    results = results.concat(similarPosts);
   }
-  console.log(result);
-  let newResults = result;
-  if(result.length) {
-    newResults = [];
-    result.forEach((post, index) => {
-      let indexAt = null;
-      for(let i = 0; i < newResults.length; i++) {
-        if(newResults[i]._id === post._id) {
-          indexAt = i;
-        }
-      };
-      // console.log(indexAt);
-      if(indexAt !== null) {
-        newResults[indexAt].relevance = newResults[indexAt].relevance + 1;
-      } else {
-        newResults.push({ ...post, relevance: 1 });
+
+  // new array for getting relevance of the match
+  let resultsMerged = [];
+  if(results.length) {
+    /* iterates over the the results array, and removes the repeated
+    results by instead increasing the result's relevance 
+    each time it's encountered in the array
+    */
+    results.forEach((post, index) => {
+      let alreadyExistsIndex = resultsMerged.findIndex((elem, index) => {
+        if(elem._id.equals(post._doc._id)) return true;
+        else return false;
+      });
+      if(alreadyExistsIndex !== -1) {
+        resultsMerged[alreadyExistsIndex].relevance++;
+      }
+      else {
+        resultsMerged.push({...post._doc, relevance: 2});
       }
     });
-    // console.log(newResults);
-  }
-  // if(post.tags) {
-  //   post.tags.forEach((tag, index) => {
+  };
 
-  //   });
-  // }
+  // if there are less than 5 results
+  if(resultsMerged.length < 5) {
+    let deficit = 5 - resultsMerged.length;
+    let moreResults = await Post.find(
+      {
+        $text: {
+          $search: post._doc.title,
+          $language: 'none',
+          $caseSensitive: false
+        }
+      },
+      postsProjection
+    ).limit(deficit + 1);
+    moreResults = moreResults.map((elem, index) => {
+      return {
+        ...elem._doc,
+        relevance: 1
+      }
+    });
+    resultsMerged = resultsMerged.concat(moreResults);
+  }
+
+  // removing the item itself from the array
+  resultsMerged = resultsMerged.filter((elem, index) => {
+    if(elem._id.equals(post._doc._id)) return false;
+    else return true;
+  });
+
+  // sort the final array by relevance
+  resultsMerged = resultsMerged.sort((elem1, elem2) => {
+    if(elem1.relevance > elem2.relevance) return -1;
+    else return 1;
+  });
+
+  // trim the array from the end if there are more than 5 results
+  if(resultsMerged.length > 5) {
+    resultsMerged = resultsMerged.slice(0, 5);
+  }
   
-  return newResults;
+  return resultsMerged;
 };
 
 
