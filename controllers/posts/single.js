@@ -79,6 +79,17 @@ const getSimilar = async (_id) => {
     resultsMerged = resultsMerged.concat(moreResults);
   }
 
+  // if there are still less than 5 results
+  if(resultsMerged.length < 5) {
+    let randomPosts = await Post.aggregate(
+      [ {$sample: { size: 10 }}, {$project: postsProjection} ]
+    );
+    randomPosts = randomPosts.map((elem, index) => {
+      return { ...elem, relevance: 0 };
+    });
+    resultsMerged = resultsMerged.concat(randomPosts);
+  }
+
   // removing the item itself from the array
   resultsMerged = resultsMerged.filter((elem, index) => {
     if(elem._id.equals(post._doc._id)) return false;
