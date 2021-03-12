@@ -72,7 +72,7 @@ const getPosts = async (req, res) => {
   }
   else if (query) {
     if(query.split(':')[0] === 'tag') {
-      const result = await queryByTag(query.split(':')[1]);
+      const result = await queryByTag(query.split(':')[1], page, limit);
       posts = result.posts;
       count = result.count;
     } else {
